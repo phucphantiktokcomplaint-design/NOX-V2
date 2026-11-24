@@ -1,0 +1,69 @@
+name: Build NOX V2 IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Verify project, scheme, resources and localization
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "NOX-V2.xcodeproj" || { echo "Missing NOX-V2.xcodeproj at repository root"; exit 1; }
+          test -f "NOX-V2.xcodeproj/xcshareddata/xcschemes/NOX V2.xcscheme" || { echo "Missing shared scheme NOX V2"; exit 1; }
+          for loc in en vi es zh-Hans; do
+            f="ThreeOneOSFive/${loc}.lproj/Localizable.strings"
+            test -s "$f" || { echo "Missing/empty localization file: $f"; exit 1; }
+          done
+          for n in 20 21 22 23; do
+            f="ThreeOneOSFive/Patches/NOX File (${n}).3105"
+            test -s "$f" || { echo "Missing/empty patch resource: $f"; exit 1; }
+          done
+          xcodebuild -version
+          xcodebuild -list -project "NOX-V2.xcodeproj"
+
+      - name: Build unsigned iOS app
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project "NOX-V2.xcodeproj" \
+            -scheme "NOX V2" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | tee "$RUNNER_TEMP/noxv2-build.log"
+
+      - name: Package unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/NOX V2.app"
+          test -d "$APP_PATH" || { echo "Build succeeded but expected app bundle was not found: $APP_PATH"; find "$RUNNER_TEMP/DerivedData/Build/Products" -maxdepth 3 -print; exit 1; }
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/NOX V2.app"
+          (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/NOX-V2-unsigned.ipa" Payload)
+          shasum -a 256 "$GITHUB_WORKSPACE/NOX-V2-unsigned.ipa"
+
+      - name: Upload IPA and build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOX-V2-unsigned-IPA
+          path: |
+            NOX-V2-unsigned.ipa
+            ${{ runner.temp }}/noxv2-build.log
+          if-no-files-found: error
+          retention-days: 14

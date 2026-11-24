@@ -1,0 +1,32 @@
+{
+  "app_name": "NOX V2",
+  "ui_and_function_baseline": "supplied NOX V1 source",
+  "main_tabs": [
+    "HOME",
+    "PATCH",
+    "ADMIN",
+    "INFO"
+  ],
+  "admin_child_screens": [
+    "Settings",
+    "Logs",
+    "Patch Projects",
+    "License Information"
+  ],
+  "localizations": [
+    "en",
+    "vi",
+    "es",
+    "zh-Hans"
+  ],
+  "patch_resources": [
+    "NOX File (20).3105",
+    "NOX File (21).3105",
+    "NOX File (22).3105",
+    "NOX File (23).3105"
+  ],
+  "workflow": ".github/workflows/build-ipa.yml",
+  "xcode_build_verified": false,
+  "device_install_verified": false,
+  "notes": "Source/resource checks only; macOS Xcode build and device runtime tests remain to be run."
+}
