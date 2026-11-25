@@ -126,14 +126,17 @@ struct HomeTabView: View {
 
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("LICENSE STATUS")
+                    Text("KEY")
                         .font(.system(size: 7, weight: .black, design: .rounded))
                         .tracking(1)
                         .foregroundStyle(.white.opacity(0.5))
-                    Text("ACTIVE")
-                        .font(.system(size: 11, weight: .black, design: .rounded))
-                        .foregroundStyle(.green)
+
+                    Text(licenseManager.rememberedKey() ?? "—")
+                        .font(.system(size: 11, weight: .black, design: .monospaced))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
                 }
+
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {

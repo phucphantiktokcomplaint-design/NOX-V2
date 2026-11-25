@@ -1,4 +1,4 @@
-name: Build NOX V2 IPA
+name: Build NOX IPA
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           test -d "NOX-V2.xcodeproj" || { echo "Missing NOX-V2.xcodeproj at repository root"; exit 1; }
-          test -f "NOX-V2.xcodeproj/xcshareddata/xcschemes/NOX V2.xcscheme" || { echo "Missing shared scheme NOX V2"; exit 1; }
+          test -f "NOX-V2.xcodeproj/xcshareddata/xcschemes/NOX.xcscheme" || { echo "Missing shared scheme NOX"; exit 1; }
           for loc in en vi es zh-Hans; do
             f="ThreeOneOSFive/${loc}.lproj/Localizable.strings"
             test -s "$f" || { echo "Missing/empty localization file: $f"; exit 1; }
@@ -39,7 +39,7 @@ jobs:
           set -o pipefail
           xcodebuild \
             -project "NOX-V2.xcodeproj" \
-            -scheme "NOX V2" \
+            -scheme "NOX" \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
@@ -51,10 +51,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/NOX V2.app"
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/NOX.app"
           test -d "$APP_PATH" || { echo "Build succeeded but expected app bundle was not found: $APP_PATH"; find "$RUNNER_TEMP/DerivedData/Build/Products" -maxdepth 3 -print; exit 1; }
           mkdir -p "$RUNNER_TEMP/ipa/Payload"
-          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/NOX V2.app"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/NOX.app"
           (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/NOX-V2-unsigned.ipa" Payload)
           shasum -a 256 "$GITHUB_WORKSPACE/NOX-V2-unsigned.ipa"
 
