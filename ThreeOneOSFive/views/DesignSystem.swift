@@ -2,11 +2,11 @@ import SwiftUI
 
 enum AppTheme {
     // Neon blue, white and deep-black palette shared by every primary screen.
-    static let accent = Color(red: 0.08, green: 0.42, blue: 0.88)
+    static let accent = Color(red: 0.08, green: 0.55, blue: 0.98)
     static let secondaryAccent = Color.white
-    static let pageBackground = Color(red: 0.95, green: 0.97, blue: 0.99)
-    static let consoleBackground = Color(red: 0.90, green: 0.94, blue: 0.98)
-    static let referenceCard = Color.white.opacity(0.76)
+    static let pageBackground = Color.black
+    static let consoleBackground = Color(red: 0.012, green: 0.025, blue: 0.045)
+    static let referenceCard = Color(red: 0.035, green: 0.075, blue: 0.12).opacity(0.72)
     static let pageInset: CGFloat = 16
     static let rowIconSize: CGFloat = 17
     static let rowIconFrame: CGFloat = 28

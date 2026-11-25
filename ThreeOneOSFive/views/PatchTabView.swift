@@ -548,7 +548,8 @@ struct PatchTabView: View {
         let color = getColorForPatch(filename)
 
         return Button {
-            togglePatch(packageFilename: filename)
+            setStatus("PATCH ACTION IS NOT AVAILABLE IN THIS UI UPDATE", .warning)
+            haptic(.warning)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -1535,10 +1536,10 @@ struct PatchTabView: View {
     // MARK: Names & Colors
 
     private func getDefaultName(for filename: String) -> String {
-        if filename.contains("(20)") { return "AimBody" }
-        if filename.contains("(21)") { return "AimLock" }
-        if filename.contains("(22)") { return "Antiban" }
-        if filename.contains("(23)") { return "Nhẹ Tâm" }
+        if filename.contains("(20)") { return "AIM BODY" }
+        if filename.contains("(21)") { return "AIMLOCK" }
+        if filename.contains("(22)") { return "NHẸ TÂM" }
+        if filename.contains("(23)") { return "ANTIBAND" }
 
         return filename
             .replacingOccurrences(of: "NOX File (", with: "Patch ")

@@ -120,7 +120,7 @@ class AppState: ObservableObject {
         guard applicable else { return }
 
         refreshKernelExploitStatus()
-        // Automatic exploit execution intentionally disabled in NOX release builds.
+        maybeAutoRunKernelExploit()
     }
 
     private func maybeAutoRunKernelExploit() {

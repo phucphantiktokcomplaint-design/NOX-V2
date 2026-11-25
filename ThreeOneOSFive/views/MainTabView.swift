@@ -13,8 +13,15 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack(alignment: .top) { // ⚡ Đổi thành .top để Banner trượt từ trên xuống
-            LinearGradient(colors: [Color(red: 0.97, green: 0.98, blue: 1.0), Color(red: 0.90, green: 0.95, blue: 0.99)], startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-            Color.white.opacity(0.16).ignoresSafeArea()
+            LinearGradient(
+                colors: [Color(red: 0.015, green: 0.025, blue: 0.05), .black, Color(red: 0.015, green: 0.045, blue: 0.075)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ).ignoresSafeArea()
+
+            AnimatedHyperBackdrop().opacity(0.16).ignoresSafeArea()
+            ParticleField().opacity(0.28)
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 appHeader
@@ -44,21 +51,21 @@ struct MainTabView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
         }
-        .preferredColorScheme(.light)
+        .preferredColorScheme(.dark)
         .animation(.easeInOut, value: licenseManager.announcement != nil)
         .overlay {
             if showIntro {
                 ZStack {
-                    Color(red: 0.96, green: 0.98, blue: 1.0).ignoresSafeArea()
+                    Color.black.ignoresSafeArea()
                     VStack(spacing: 14) {
                         Image("NOXAvatar")
                             .resizable().scaledToFill()
                             .frame(width: 88, height: 88)
                             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(.white.opacity(0.95), lineWidth: 1.2))
-                            .shadow(color: .blue.opacity(0.12), radius: 24)
-                        Text("NOX").font(.system(size: 42, weight: .black, design: .rounded)).tracking(8).foregroundStyle(Color.primary)
-                        Text("PHUC PHAN").font(.system(size: 11, weight: .bold, design: .rounded)).tracking(4).foregroundStyle(Color.blue)
+                            .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(.cyan.opacity(0.8), lineWidth: 1.2))
+                            .shadow(color: .cyan.opacity(0.35), radius: 24)
+                        Text("NOX V2").font(.system(size: 42, weight: .black, design: .rounded)).tracking(8).foregroundStyle(.white)
+                        Text("FELIX PHAN").font(.system(size: 11, weight: .bold, design: .rounded)).tracking(4).foregroundStyle(.cyan)
                         ZStack {
                             Circle().stroke(.white.opacity(0.12), lineWidth: 4)
                             Circle().trim(from: 0, to: introProgress)
@@ -68,7 +75,7 @@ struct MainTabView: View {
                             Text("\(Int(introProgress * 100))%")
                                 .font(.system(size: 13, weight: .bold, design: .rounded)).foregroundStyle(.white)
                         }.frame(width: 48, height: 48).padding(.top, 12)
-                        Text("INITIALIZING NOX")
+                        Text("INITIALIZING NOX V2")
                             .font(.system(size: 9, weight: .black, design: .rounded)).tracking(2.2)
                             .foregroundStyle(.white.opacity(0.55))
                     }
@@ -79,7 +86,7 @@ struct MainTabView: View {
         }
         .task {
             withAnimation(.easeInOut(duration: 1.25)) { introProgress = 1 }
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            try? await Task.sleep(nanoseconds: 1_350_000_000)
             withAnimation(.easeOut(duration: 0.45)) { showIntro = false }
         }
     }
@@ -95,7 +102,7 @@ struct MainTabView: View {
                 .shadow(color: .cyan.opacity(0.22), radius: 12)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("NOX")
+                Text("NOX V2")
                     .font(.system(size: 16, weight: .black, design: .rounded))
                     .tracking(1.6)
                     .foregroundStyle(ProTheme.titleGradient)
@@ -127,24 +134,24 @@ struct MainTabView: View {
                         ZStack {
                             if selectedTab == tab {
                                 Circle()
-                                    .fill(Color.blue.opacity(0.15))
+                                    .fill(ProTheme.gold.opacity(0.15))
                                     .frame(width: 38, height: 38)
                                     .blur(radius: 8)
 
                                 Circle()
-                                    .fill(Color.blue.opacity(0.2))
+                                    .fill(ProTheme.gold.opacity(0.2))
                                     .frame(width: 32, height: 32)
                             }
 
                             Image(systemName: selectedTab == tab ? tab.iconFilled : tab.icon)
                                 .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(selectedTab == tab ? Color.blue : .black.opacity(0.45))
+                                .foregroundStyle(selectedTab == tab ? ProTheme.gold : .white.opacity(0.5))
                         }
 
                         Text(tab.title)
                             .font(.system(size: 9, weight: .black, design: .rounded))
                             .tracking(1)
-                            .foregroundStyle(selectedTab == tab ? Color.blue : .black.opacity(0.45))
+                            .foregroundStyle(selectedTab == tab ? ProTheme.gold : .white.opacity(0.45))
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 64)
@@ -156,10 +163,10 @@ struct MainTabView: View {
         .padding(.horizontal, 12)
         .padding(.bottom, 4)
         .background(
-            Color.white.opacity(0.78)
+            Color.black.opacity(0.75)
                 .overlay(alignment: .top) {
                     Rectangle()
-                        .fill(Color.white.opacity(0.85))
+                        .fill(ProTheme.gold.opacity(0.3))
                         .frame(height: 1)
                 }
         )
@@ -221,7 +228,7 @@ struct AnnouncementBanner: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: "bell.badge.fill")
-                        .foregroundStyle(announcement.isUrgent ? .red : Color.blue)
+                        .foregroundStyle(announcement.isUrgent ? .red : ProTheme.gold)
                     
                     Text(announcement.title)
                         .font(.system(size: 12, weight: .black, design: .rounded))
@@ -245,7 +252,7 @@ struct AnnouncementBanner: View {
                 
                 Text(announcement.date)
                     .font(.system(size: 9, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.blue.opacity(0.8))
+                    .foregroundStyle(ProTheme.gold.opacity(0.8))
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .padding(14)
@@ -256,7 +263,7 @@ struct AnnouncementBanner: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(announcement.isUrgent ? Color.red.opacity(0.6) : Color.blue.opacity(0.4), lineWidth: 1.2)
+                    .stroke(announcement.isUrgent ? Color.red.opacity(0.6) : ProTheme.gold.opacity(0.4), lineWidth: 1.2)
             )
             .padding(.horizontal, 18)
         }
@@ -275,7 +282,7 @@ struct FelixInfoTabView: View {
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.cyan.opacity(0.7), lineWidth: 1.5))
                     .shadow(color: Color.cyan.opacity(0.22), radius: 12)
-                Text("PHUC PHAN").font(.system(size: 25, weight: .black, design: .rounded)).tracking(3).foregroundStyle(.white)
+                Text("FELIX PHAN").font(.system(size: 25, weight: .black, design: .rounded)).tracking(3).foregroundStyle(.white)
                 Text("NOX V2 • OWNER & SUPPORT").font(.system(size: 10, weight: .bold)).tracking(2).foregroundStyle(.cyan)
                 Link(destination: URL(string: "https://zalo.me/0964943392")!) {
                     contactRow("message.fill", "Zalo", "0964943392")
