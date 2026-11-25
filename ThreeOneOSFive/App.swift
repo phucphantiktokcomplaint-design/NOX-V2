@@ -9,6 +9,7 @@ struct ThreeOneOSFiveApp: App {
     @StateObject private var fileOperationCoordinator = FileOperationCoordinator()
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
     @State private var updateOffer: AppUpdateChecker.Offer?
+    @State private var showSplash = true
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -30,7 +31,9 @@ struct ThreeOneOSFiveApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if licenseManager.isActive {
+                if showSplash {
+                    NOXSplashView()
+                } else if licenseManager.isActive {
                     ContentView()
                         .environmentObject(licenseManager)
                 } else {
@@ -57,6 +60,10 @@ struct ThreeOneOSFiveApp: App {
             }
             .onAppear {
                 licenseManager.beginLaunchSession()
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    withAnimation(.easeInOut(duration: 0.35)) { showSplash = false }
+                }
                 appState.detectSupport()
                 checkForUpdate()
             }
@@ -68,7 +75,7 @@ struct ThreeOneOSFiveApp: App {
             .onOpenURL { url in
                 patchDraftCoordinator.presentImport(url)
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
         }
     }
 }
@@ -119,60 +126,30 @@ class AppState: ObservableObject {
         )
         guard applicable else { return }
 
-        refreshKernelExploitStatus()
-        maybeAutoRunKernelExploit()
-    }
-
-    private func maybeAutoRunKernelExploit() {
-        guard !kernelExploitRunning,
-              !exploitStatus.isSuccess,
-              !exploitStatus.isFailed,
-              !autoRunAttempted else { return }
-        autoRunAttempted = true
-        log("app: starting kernel exploit automatically")
-        runKernelExploitIfNeeded()
-    }
-
-    private func refreshKernelExploitStatus() {
-        guard !kernelExploitRunning else { return }
-
-        if KernelExploit.requiresSandboxEscape {
-            if KernelExploit.hasSandboxAccess() {
-                if !exploitStatus.isSuccess {
-                    exploitStatus = .success(method: "kexploit")
-                    log("app: existing sandbox access is still active; skipping kernel exploit")
-                }
-            } else if exploitStatus.isSuccess {
-                exploitStatus = .notStarted
-                log("app: sandbox access is no longer active")
-            }
-        }
+        // Kernel exploit is intentionally not invoked during launch or by this UI state.
+        exploitStatus = .notStarted
+        log("app: kernel exploit auto-run disabled")
     }
 
     func runKernelExploitIfNeeded() {
-        refreshKernelExploitStatus()
-        guard !kernelExploitRunning,
-              !exploitStatus.isSuccess,
-              !exploitStatus.isFailed else { return }
-        kernelExploitRunning = true
-        exploitStatus = .notStarted
-        log("app: running kernel exploit on background...")
-        DispatchQueue.global(qos: .userInitiated).async {
-            let ok = KernelExploit.run()
-            DispatchQueue.main.async {
-                self.kernelExploitRunning = false
-                if ok {
-                    self.exploitStatus = .success(method: "kexploit")
-                    if KernelExploit.requiresSandboxEscape {
-                        log("app: kernel exploit success — sandbox access verified")
-                    } else {
-                        log("app: kernel exploit success — kernel access active")
-                    }
-                } else {
-                    self.exploitStatus = .failed(method: "kexploit", code: -1)
-                    log("app: kernel exploit failed — relaunch the app before retrying")
-                }
-            }
-        }
+        log("app: exploit execution is disabled in this build")
+    }
+}
+
+private struct NOXSplashView: View {
+    @State private var glow = false
+    var body: some View {
+        ZStack {
+            Color(red: 0.96, green: 0.98, blue: 1).ignoresSafeArea()
+            Circle().fill(Color.blue.opacity(0.14)).frame(width: 240).blur(radius: 48).offset(y: -70)
+            VStack(spacing: 18) {
+                Image("NOXAvatar").resizable().scaledToFit().frame(width: 112, height: 112)
+                    .clipShape(RoundedRectangle(cornerRadius: 26)).shadow(color: .blue.opacity(0.18), radius: 20)
+                Text("NOX").font(.system(size: 34, weight: .black, design: .rounded)).tracking(4).foregroundStyle(Color.black.opacity(0.84))
+                Text("PHUC PHAN").font(.system(size: 12, weight: .bold)).tracking(2).foregroundStyle(.secondary)
+                ProgressView().tint(.blue).frame(width: 120).padding(.top, 8)
+                Text("Initializing…").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+            }.opacity(glow ? 1 : 0.84).scaleEffect(glow ? 1 : 0.98)
+        }.onAppear { withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { glow = true } }
     }
 }

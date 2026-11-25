@@ -12,7 +12,8 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,10 +46,6 @@ jobs:
           echo "IPA_VERSION=${VERSION}" >> "$GITHUB_ENV"
           echo "IPA_BUILD=${BUILD}" >> "$GITHUB_ENV"
 
-      # Release-gate sentinel (issue #3): derive a >=16 byte string literal
-      # from the current source instead of maintaining a hardcoded constant.
-      # Swift -O inlines shorter interpolation fragments, so short probes are
-      # not reliable. Asserts the artifact was built from this source tree.
       - name: Verify artifact matches source
         run: |
           APP="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/3106.app"

@@ -345,8 +345,8 @@
 			);
 			dependencies = (
 			);
-			name = "NOX V2";
-			productName = "NOX V2";
+			name = NOX;
+			productName = NOX;
 			productReference = 3105A010;
 			productType = "com.apple.product-type.application";
 		};
@@ -490,7 +490,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ThreeOneOSFive/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "NOX V2";
+				INFOPLIST_KEY_CFBundleDisplayName = NOX;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -503,8 +503,8 @@
 				);
 				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = "-lz";
-				PRODUCT_BUNDLE_IDENTIFIER = com.phucphan.noxv2;
-				PRODUCT_NAME = "NOX V2";
+				PRODUCT_BUNDLE_IDENTIFIER = com.phucphan.nox;
+				PRODUCT_NAME = NOX;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ThreeOneOSFive/ThreeOneOSFive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -524,7 +524,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ThreeOneOSFive/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "NOX V2";
+				INFOPLIST_KEY_CFBundleDisplayName = NOX;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -537,8 +537,8 @@
 				);
 				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = "-lz";
-				PRODUCT_BUNDLE_IDENTIFIER = com.phucphan.noxv2;
-				PRODUCT_NAME = "NOX V2";
+				PRODUCT_BUNDLE_IDENTIFIER = com.phucphan.nox;
+				PRODUCT_NAME = NOX;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "ThreeOneOSFive/ThreeOneOSFive-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

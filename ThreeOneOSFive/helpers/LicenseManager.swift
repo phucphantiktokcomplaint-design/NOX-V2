@@ -240,7 +240,7 @@ final class LicenseManager: ObservableObject {
     private func rejectForMaintenance() {
         isActive = false
         forceLogout = true
-        message = "NOX đang bảo trì. Vui lòng quay lại sau."
+        message = "The NOX APP is under maintenance. Please wait!"
     }
 
     private func string(_ value: Any?) -> String {
