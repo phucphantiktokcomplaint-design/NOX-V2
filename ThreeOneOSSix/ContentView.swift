@@ -29,6 +29,8 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showLogs = false
     @State private var showAbout = false
+    @State private var showLicenseStatus = false
+    @State private var showSupport = false
 
     var body: some View {
         ZStack {
@@ -51,6 +53,8 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLogs) { LogView() }
         .sheet(isPresented: $showAbout) { AcknowledgementsView() }
+        .sheet(isPresented: $showLicenseStatus) { NOXV2LicenseStatusView() }
+        .sheet(isPresented: $showSupport) { NOXV2SupportView() }
     }
 
     private var header: some View {
@@ -140,8 +144,8 @@ struct ContentView: View {
                 pageTitle(language.text("noxv2.admin.title"), subtitle: language.text("noxv2.admin.subtitle"))
                 adminButton(icon: "gearshape.fill", title: language.text("noxv2.admin.settings"), detail: language.text("noxv2.admin.settings.detail")) { showSettings = true }
                 adminButton(icon: "doc.text.magnifyingglass", title: language.text("noxv2.admin.logs"), detail: language.text("noxv2.admin.logs.detail")) { showLogs = true }
-                adminButton(icon: "checkmark.shield.fill", title: language.text("noxv2.admin.license"), detail: language.text("noxv2.admin.license.detail")) { }
-                adminButton(icon: "questionmark.circle.fill", title: language.text("noxv2.admin.support"), detail: language.text("noxv2.admin.support.detail")) { showAbout = true }
+                adminButton(icon: "checkmark.shield.fill", title: language.text("noxv2.admin.license"), detail: language.text("noxv2.admin.license.detail")) { showLicenseStatus = true }
+                adminButton(icon: "questionmark.circle.fill", title: language.text("noxv2.admin.support"), detail: language.text("noxv2.admin.support.detail")) { showSupport = true }
                 Text(language.text("noxv2.admin.backend.notice"))
                     .font(.system(size: 12)).foregroundStyle(NOXV2Theme.muted)
                     .padding(14).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
@@ -227,6 +231,63 @@ struct ContentView: View {
     }
     private var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+}
+
+private struct NOXV2LicenseStatusView: View {
+    @Environment(\.appLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
+    private var endpoint: String {
+        (Bundle.main.object(forInfoDictionaryKey: "NOX_LICENSE_SERVER_URL") as? String) ?? ""
+    }
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 14) {
+                Label(language.text("noxv2.license.unconfigured"), systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange).font(.headline)
+                Text(language.text("noxv2.license.description"))
+                    .font(.subheadline).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(language.text("noxv2.license.endpoint"))
+                        .font(.caption.weight(.semibold))
+                    Text(endpoint.isEmpty ? language.text("noxv2.license.endpoint.empty") : endpoint)
+                        .font(.footnote.monospaced()).textSelection(.enabled)
+                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                Spacer()
+            }.padding()
+                .navigationTitle(language.text("noxv2.admin.license"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(language.text("common.done")) { dismiss() } } }
+        }
+    }
+}
+
+private struct NOXV2SupportView: View {
+    @Environment(\.appLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Image(systemName: "message.fill").font(.system(size: 36)).foregroundStyle(NOXV2Theme.cyan)
+                Text(language.text("noxv2.support.title")).font(.headline)
+                Text("0964943392").font(.title3.monospaced()).textSelection(.enabled)
+                Button {
+                    if let url = URL(string: "https://zalo.me/0964943392") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Label(language.text("noxv2.support.openzalo"), systemImage: "arrow.up.right.square")
+                        .frame(maxWidth: .infinity).padding()
+                }.buttonStyle(.borderedProminent)
+                Button(language.text("noxv2.support.credits")) { dismiss(); }
+                    .buttonStyle(.bordered)
+                Spacer()
+            }.padding()
+                .navigationTitle(language.text("noxv2.admin.support"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(language.text("common.done")) { dismiss() } } }
+        }
     }
 }
 

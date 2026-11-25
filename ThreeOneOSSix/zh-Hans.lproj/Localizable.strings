@@ -1655,3 +1655,12 @@
 "noxv2.info.description" = "NOX V2 是基于 3106 源项目构建的新界面。本次重建重点是导航、品牌和透明状态显示。";
 "noxv2.info.licenses" = "开源声明";
 "noxv2.info.licenses.detail" = "查看致谢与许可证声明";
+
+// NOX V2 functional UI additions
+"noxv2.license.unconfigured" = "服务器尚未配置";
+"noxv2.license.description" = "此页面显示当前配置。在线许可证验证尚未连接，不会伪造激活状态。";
+"noxv2.license.endpoint" = "许可证服务器端点";
+"noxv2.license.endpoint.empty" = "应用配置中未设置 NOX_LICENSE_SERVER_URL。";
+"noxv2.support.title" = "联系 NOX 支持";
+"noxv2.support.openzalo" = "打开 Zalo 联系";
+"noxv2.support.credits" = "查看致谢 / 许可证";

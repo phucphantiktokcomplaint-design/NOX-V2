@@ -18,3 +18,11 @@
 
 ## Safety/functional boundary
 This rebuild focuses on navigation, UI, branding, localization, source preservation, and reproducible CI. Kernel exploit execution, sandbox escapes, anti-detection, security bypasses, and applying device/system patches are not wired into the new UI. License/key-server integration is not connected because a verified backend endpoint and API schema are not supplied in this package.
+
+## Current-source follow-up (2026-11-25)
+- Connected the Admin License / Key Server row to a dedicated status screen instead of an empty action. The screen reads the existing `NOX_LICENSE_SERVER_URL` Info.plist value and accurately shows when it is absent; it does not simulate online verification.
+- Connected Support to a dedicated contact screen. Zalo is opened only after the user taps the explicit contact button (`https://zalo.me/0964943392`). The credits/acknowledgements action remains separate.
+- Added localized strings for these screens across vi / en / zh-Hans / ko.
+- Localization alignment check: PASS (1,627 keys per language, no mismatch).
+- Policy test script was attempted but could not complete in this Linux environment because `/usr/libexec/PlistBuddy` is unavailable. Xcode/macOS build remains unverified.
+- No patch/exploit payload implementation or action wiring was changed in this follow-up.

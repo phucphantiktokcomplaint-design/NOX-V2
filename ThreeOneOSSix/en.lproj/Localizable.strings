@@ -1655,3 +1655,12 @@
 "noxv2.info.description" = "NOX V2 is a new interface built on the 3106 source project. The current rebuild focuses on navigation, branding, and transparent status reporting.";
 "noxv2.info.licenses" = "Open-source notices";
 "noxv2.info.licenses.detail" = "View acknowledgements and license notices";
+
+// NOX V2 functional UI additions
+"noxv2.license.unconfigured" = "Server is not configured";
+"noxv2.license.description" = "This shows the current configuration. Online license verification has not been connected and no activation status is fabricated.";
+"noxv2.license.endpoint" = "License Server endpoint";
+"noxv2.license.endpoint.empty" = "NOX_LICENSE_SERVER_URL is not set in the app configuration.";
+"noxv2.support.title" = "Contact NOX Support";
+"noxv2.support.openzalo" = "Open Zalo contact";
+"noxv2.support.credits" = "View acknowledgements / licenses";

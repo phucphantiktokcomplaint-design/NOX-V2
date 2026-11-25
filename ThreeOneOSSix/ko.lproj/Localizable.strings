@@ -1620,3 +1620,12 @@
 "noxv2.info.description" = "NOX V2는 3106 소스 프로젝트를 기반으로 새롭게 구성한 인터페이스입니다. 현재 재빌드는 탐색, 브랜드 및 상태 표시를 중심으로 합니다.";
 "noxv2.info.licenses" = "오픈 소스 고지";
 "noxv2.info.licenses.detail" = "감사의 말 및 라이선스 확인";
+
+// NOX V2 functional UI additions
+"noxv2.license.unconfigured" = "서버가 구성되지 않았습니다";
+"noxv2.license.description" = "현재 구성을 표시합니다. 온라인 라이선스 확인은 연결되지 않았으며 활성화 상태를 허위로 표시하지 않습니다.";
+"noxv2.license.endpoint" = "라이선스 서버 엔드포인트";
+"noxv2.license.endpoint.empty" = "앱 설정에 NOX_LICENSE_SERVER_URL이 없습니다.";
+"noxv2.support.title" = "NOX 지원 연락";
+"noxv2.support.openzalo" = "Zalo 연락 열기";
+"noxv2.support.credits" = "감사 / 라이선스 보기";

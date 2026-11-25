@@ -1655,3 +1655,12 @@
 "noxv2.info.description" = "NOX V2 là giao diện mới xây dựng trên source dự án 3106. Bản rebuild hiện tập trung vào điều hướng, thương hiệu và hiển thị trạng thái minh bạch.";
 "noxv2.info.licenses" = "Thông báo mã nguồn mở";
 "noxv2.info.licenses.detail" = "Xem acknowledgements và license";
+
+// NOX V2 functional UI additions
+"noxv2.license.unconfigured" = "Server chưa cấu hình";
+"noxv2.license.description" = "Đây là trạng thái cấu hình hiện tại. Ứng dụng chưa xác minh license online và không hiển thị trạng thái kích hoạt giả.";
+"noxv2.license.endpoint" = "Endpoint License Server";
+"noxv2.license.endpoint.empty" = "Chưa có NOX_LICENSE_SERVER_URL trong cấu hình ứng dụng.";
+"noxv2.support.title" = "Liên hệ hỗ trợ NOX";
+"noxv2.support.openzalo" = "Mở Zalo liên hệ";
+"noxv2.support.credits" = "Xem ghi nhận / license";
