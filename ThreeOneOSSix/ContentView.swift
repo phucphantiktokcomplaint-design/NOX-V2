@@ -58,67 +58,70 @@ struct ContentView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "hexagon.fill")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(NOXV2Theme.cyan)
-                .overlay {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 12, weight: .black))
-                        .foregroundStyle(.black)
-                }
-            VStack(alignment: .leading, spacing: 2) {
-                Text("NOX V2").font(.system(size: 18, weight: .black, design: .rounded)).tracking(1.5)
-                Text(language.text("noxv2.header.subtitle"))
-                    .font(.system(size: 10, weight: .semibold)).tracking(1.1)
-                    .foregroundStyle(NOXV2Theme.muted)
+        HStack(spacing: 13) {
+            ZStack {
+                Circle().fill(NOXV2Theme.blue.opacity(0.16)).frame(width: 46, height: 46)
+                Circle().stroke(NOXV2Theme.cyan.opacity(0.55), lineWidth: 1).frame(width: 46, height: 46)
+                Image(systemName: "bolt.fill").font(.system(size: 19, weight: .black)).foregroundStyle(NOXV2Theme.cyan)
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text("NOX V2").font(.system(size: 19, weight: .black, design: .rounded)).tracking(2)
+                Text("PATCH CONTROL • PREMIUM UI").font(.system(size: 9, weight: .bold)).tracking(1.3).foregroundStyle(NOXV2Theme.muted)
             }
             Spacer()
-            Circle().fill(Color.green).frame(width: 7, height: 7)
-            Text(language.text("noxv2.header.local"))
-                .font(.system(size: 10, weight: .bold)).foregroundStyle(NOXV2Theme.muted)
+            VStack(alignment: .trailing, spacing: 4) {
+                HStack(spacing: 5) { Circle().fill(NOXV2Theme.cyan).frame(width: 6, height: 6); Text(language.text("noxv2.header.local")) }
+                    .font(.system(size: 9, weight: .bold)).foregroundStyle(NOXV2Theme.muted)
+                Text("V2 CONTROL CENTER").font(.system(size: 8, weight: .heavy)).tracking(0.7).foregroundStyle(NOXV2Theme.cyan)
+            }
         }
         .padding(.horizontal, 18).padding(.vertical, 14)
-        .background(NOXV2Theme.panel.opacity(0.9))
-        .overlay(alignment: .bottom) { Rectangle().fill(NOXV2Theme.cyan.opacity(0.25)).frame(height: 1) }
+        .background(NOXV2Theme.background.opacity(0.96))
+        .overlay(alignment: .bottom) { Rectangle().fill(LinearGradient(colors: [NOXV2Theme.blue.opacity(0.05), NOXV2Theme.cyan.opacity(0.55), NOXV2Theme.blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)).frame(height: 1) }
     }
 
     private var home: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(language.text("noxv2.home.title"))
-                        .font(.system(size: 25, weight: .black, design: .rounded))
-                    Text(language.text("noxv2.home.subtitle"))
-                        .font(.system(size: 13)).foregroundStyle(NOXV2Theme.muted)
-                    HStack(spacing: 8) {
-                        statusPill(language.text("noxv2.status.local"), color: NOXV2Theme.cyan)
-                        statusPill(language.text("noxv2.status.backend.unconfigured"), color: NOXV2Theme.gold)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 18) {
+                // New visual hierarchy: brand hero, status strip, compact dashboard and action tiles.
+                VStack(spacing: 10) {
+                    ZStack {
+                        Circle().fill(NOXV2Theme.blue.opacity(0.13)).frame(width: 88, height: 88)
+                        Circle().stroke(NOXV2Theme.cyan.opacity(0.55), lineWidth: 1.5).frame(width: 82, height: 82)
+                        Image(systemName: "bolt.fill").font(.system(size: 31, weight: .black)).foregroundStyle(NOXV2Theme.cyan)
                     }
+                    Text("NOX V2").font(.system(size: 28, weight: .black, design: .rounded)).tracking(3)
+                    Text("CONTROL CENTER").font(.system(size: 11, weight: .heavy)).tracking(2).foregroundStyle(NOXV2Theme.cyan)
+                    Text(language.text("noxv2.home.subtitle")).font(.system(size: 12, weight: .medium)).foregroundStyle(NOXV2Theme.muted).multilineTextAlignment(.center)
                 }
-                .padding(18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [NOXV2Theme.panel, NOXV2Theme.panel2], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(NOXV2Theme.cyan.opacity(0.28), lineWidth: 1))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .frame(maxWidth: .infinity).padding(.vertical, 18)
+                .background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [NOXV2Theme.panel2.opacity(0.85), NOXV2Theme.panel.opacity(0.7)], startPoint: .top, endPoint: .bottom)))
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(NOXV2Theme.cyan.opacity(0.24), lineWidth: 1))
+
+                HStack(spacing: 9) {
+                    statusPill(language.text("noxv2.status.local"), color: NOXV2Theme.cyan)
+                    statusPill(language.text("noxv2.status.backend.unconfigured"), color: NOXV2Theme.gold)
+                }.frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 10) {
-                    statCard(title: language.text("noxv2.stat.version"), value: appVersion, icon: "app")
-                    statCard(title: language.text("noxv2.stat.ios"), value: UIDevice.current.systemVersion, icon: "iphone")
+                    statCard(title: language.text("noxv2.stat.version"), value: appVersion, icon: "square.grid.2x2.fill", accent: NOXV2Theme.cyan)
+                    statCard(title: language.text("noxv2.stat.ios"), value: UIDevice.current.systemVersion, icon: "iphone", accent: NOXV2Theme.blue)
                 }
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(language.text("noxv2.home.quick")).font(.system(size: 14, weight: .bold))
+
+                VStack(alignment: .leading, spacing: 11) {
+                    HStack { Text(language.text("noxv2.home.quick")).font(.system(size: 16, weight: .black)); Spacer(); Text("QUICK ACCESS").font(.system(size: 8, weight: .heavy)).tracking(1).foregroundStyle(NOXV2Theme.cyan) }
                     quickCard(tab: .patch, title: language.text("noxv2.quick.patch"), subtitle: language.text("noxv2.quick.patch.detail"), icon: "square.stack.3d.up.fill")
                     quickCard(tab: .admin, title: language.text("noxv2.quick.admin"), subtitle: language.text("noxv2.quick.admin.detail"), icon: "slider.horizontal.3")
                     quickCard(tab: .info, title: language.text("noxv2.quick.info"), subtitle: language.text("noxv2.quick.info.detail"), icon: "info.circle.fill")
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(language.text("noxv2.notice.title")).font(.system(size: 12, weight: .bold)).foregroundStyle(NOXV2Theme.gold)
-                    Text(language.text("noxv2.notice.body")).font(.system(size: 12)).foregroundStyle(NOXV2Theme.muted)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 7) { Image(systemName: "waveform.path.ecg").foregroundStyle(NOXV2Theme.gold); Text(language.text("noxv2.notice.title")).font(.system(size: 12, weight: .black)).foregroundStyle(NOXV2Theme.gold) }
+                    Text(language.text("noxv2.notice.body")).font(.system(size: 12, weight: .medium)).foregroundStyle(NOXV2Theme.muted).fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(14).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
-            }
-            .padding(16)
+                .padding(15).frame(maxWidth: .infinity, alignment: .leading)
+                .background(NOXV2Theme.panel.opacity(0.9)).overlay(RoundedRectangle(cornerRadius: 16).stroke(NOXV2Theme.gold.opacity(0.18), lineWidth: 1)).clipShape(RoundedRectangle(cornerRadius: 16))
+            }.padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 20)
         }
     }
 
@@ -169,21 +172,24 @@ struct ContentView: View {
     }
 
     private var tabBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             ForEach(NOXV2Tab.allCases, id: \.self) { tab in
-                Button { withAnimation(.easeInOut(duration: 0.18)) { selected = tab } } label: {
+                Button { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { selected = tab } } label: {
                     VStack(spacing: 5) {
-                        Image(systemName: tab.icon).font(.system(size: 17, weight: .semibold))
-                        Text(language.text(tab.key)).font(.system(size: 9, weight: .bold)).tracking(0.5)
+                        Image(systemName: tab.icon).font(.system(size: 18, weight: .bold))
+                        Text(language.text(tab.key)).font(.system(size: 9, weight: .heavy)).tracking(0.8)
                     }
                     .foregroundStyle(selected == tab ? NOXV2Theme.cyan : NOXV2Theme.muted)
                     .frame(maxWidth: .infinity).padding(.vertical, 11)
-                    .background(selected == tab ? NOXV2Theme.cyan.opacity(0.08) : .clear)
+                    .background(selected == tab ? NOXV2Theme.cyan.opacity(0.10) : Color.clear, in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(alignment: .top) { if selected == tab { Capsule().fill(NOXV2Theme.cyan).frame(width: 24, height: 2).padding(.top, 1) } }
                 }.buttonStyle(.plain)
             }
         }
-        .background(NOXV2Theme.panel)
-        .overlay(alignment: .top) { Rectangle().fill(NOXV2Theme.cyan.opacity(0.2)).frame(height: 1) }
+        .padding(.horizontal, 8).padding(.vertical, 7)
+        .background(NOXV2Theme.panel.opacity(0.98), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(NOXV2Theme.cyan.opacity(0.2), lineWidth: 1))
+        .padding(.horizontal, 12).padding(.bottom, 7)
     }
 
     private func pageTitle(_ title: String, subtitle: String) -> some View {
@@ -196,26 +202,35 @@ struct ContentView: View {
         Text(text).font(.system(size: 10, weight: .bold)).padding(.horizontal, 10).padding(.vertical, 5)
             .background(color.opacity(0.12), in: Capsule()).overlay(Capsule().stroke(color.opacity(0.35), lineWidth: 0.7)).foregroundStyle(color)
     }
-    private func statCard(title: String, value: String, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon).foregroundStyle(NOXV2Theme.cyan)
-            Text(title).font(.system(size: 10, weight: .bold)).foregroundStyle(NOXV2Theme.muted)
-            Text(value).font(.system(size: 15, weight: .bold, design: .rounded))
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(14).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
+    private func statCard(title: String, value: String, icon: String, accent: Color = NOXV2Theme.cyan) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Image(systemName: icon).font(.system(size: 16, weight: .bold)).foregroundStyle(accent)
+                .frame(width: 34, height: 34).background(accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 10))
+            Text(title.uppercased()).font(.system(size: 9, weight: .heavy)).tracking(0.7).foregroundStyle(NOXV2Theme.muted)
+            Text(value).font(.system(size: 18, weight: .black, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(14)
+            .background(NOXV2Theme.panel, in: RoundedRectangle(cornerRadius: 17))
+            .overlay(RoundedRectangle(cornerRadius: 17).stroke(accent.opacity(0.19), lineWidth: 1))
     }
+
     private func quickCard(tab: NOXV2Tab, title: String, subtitle: String, icon: String) -> some View {
         Button { selected = tab } label: {
-            HStack(spacing: 12) {
-                Image(systemName: icon).font(.system(size: 17, weight: .semibold)).foregroundStyle(NOXV2Theme.cyan).frame(width: 36, height: 36).background(NOXV2Theme.cyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title).font(.system(size: 13, weight: .bold))
-                    Text(subtitle).font(.system(size: 11)).foregroundStyle(NOXV2Theme.muted)
+            HStack(spacing: 13) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 13).fill(NOXV2Theme.cyan.opacity(0.10)).frame(width: 46, height: 46)
+                    Image(systemName: icon).font(.system(size: 19, weight: .bold)).foregroundStyle(NOXV2Theme.cyan)
                 }
-                Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(NOXV2Theme.muted)
-            }.padding(12).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).font(.system(size: 14, weight: .black))
+                    Text(subtitle).font(.system(size: 11, weight: .medium)).foregroundStyle(NOXV2Theme.muted).lineLimit(2)
+                }
+                Spacer(minLength: 3)
+                Image(systemName: "arrow.up.right").font(.system(size: 12, weight: .heavy)).foregroundStyle(NOXV2Theme.cyan)
+            }.padding(14).background(NOXV2Theme.panel, in: RoundedRectangle(cornerRadius: 17))
+                .overlay(RoundedRectangle(cornerRadius: 17).stroke(NOXV2Theme.blue.opacity(0.17), lineWidth: 1))
         }.buttonStyle(.plain)
     }
+
     private func adminButton(icon: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
