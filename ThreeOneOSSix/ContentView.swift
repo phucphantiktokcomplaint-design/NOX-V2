@@ -1,353 +1,192 @@
 import SwiftUI
 import UIKit
 
-private enum NOXV2Tab: Int, CaseIterable {
-    case home, patch, admin, info
-
-    var key: String {
-        switch self {
-        case .home: return "noxv2.tab.home"
-        case .patch: return "noxv2.tab.patch"
-        case .admin: return "noxv2.tab.admin"
-        case .info: return "noxv2.tab.info"
-        }
-    }
-    var icon: String {
-        switch self {
-        case .home: return "square.grid.2x2.fill"
-        case .patch: return "square.stack.3d.up.fill"
-        case .admin: return "slider.horizontal.3"
-        case .info: return "info.circle.fill"
-        }
-    }
-}
-
+/// NOX V2 navigation shell rebuilt to match the visual language of V1.
+/// Existing feature views remain the source of behavior; this file only owns
+/// presentation, tab routing, and sheet presentation.
 struct ContentView: View {
     @Environment(\.appLanguage) private var language
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @EnvironmentObject private var patchDraftCoordinator: PatchDraftCoordinator
+    @EnvironmentObject private var patchStore: PatchProjectStore
+    @EnvironmentObject private var repositoryStore: PackageRepositoryStore
     @EnvironmentObject private var appState: AppState
-    @State private var selected: NOXV2Tab = .home
+    @State private var selectedTab: NOXShellTab = .home
     @State private var showSettings = false
     @State private var showLogs = false
-    @State private var showAbout = false
-    @State private var showLicenseStatus = false
-    @State private var showSupport = false
+    @StateObject private var scanCoordinator = ScanCoordinator()
 
     var body: some View {
         ZStack {
-            NOXV2Theme.background.ignoresSafeArea()
+            NOXShellBackground()
             VStack(spacing: 0) {
                 header
                 Group {
-                    switch selected {
-                    case .home: home
-                    case .patch: patchInventory
-                    case .admin: admin
-                    case .info: info
+                    switch selectedTab {
+                    case .home:
+                        FeatureHubView(onSelectTab: { _ in }, onOpenSettings: openSettings, onOpenLogs: openLogs)
+                    case .patch:
+                        PatchProjectsView(onOpenSettings: openSettings, onOpenLogs: openLogs)
+                    case .admin:
+                        adminPage
+                    case .info:
+                        AcknowledgementsView()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                tabBar
+                .background(Color.clear)
+                shellTabBar
             }
         }
+        .tint(NOXShellStyle.cyan)
         .preferredColorScheme(.dark)
+        .onChange(of: patchDraftCoordinator.request?.id) { id in
+            if id != nil { selectedTab = .patch }
+        }
+        .onChange(of: patchDraftCoordinator.importRequest?.id) { id in
+            if id != nil { selectedTab = .patch }
+        }
+        .environmentObject(scanCoordinator)
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showLogs) { LogView() }
-        .sheet(isPresented: $showAbout) { AcknowledgementsView() }
-        .sheet(isPresented: $showLicenseStatus) { NOXV2LicenseStatusView() }
-        .sheet(isPresented: $showSupport) { NOXV2SupportView() }
+        .sheet(isPresented: $scanCoordinator.isPresented) {
+            ScanProgressSheet().environmentObject(scanCoordinator).environment(\.appLanguage, language)
+        }
+        .overlay(alignment: .bottom) {
+            if scanCoordinator.isRunning && !scanCoordinator.isPresented {
+                ScanRunningBanner().environmentObject(scanCoordinator).environment(\.appLanguage, language)
+            }
+        }
+        .patchStorePresentation(patchStore)
+        .repositoryStorePresentation(repositoryStore, patchStore: patchStore)
     }
 
     private var header: some View {
-        HStack(spacing: 13) {
-            ZStack {
-                Circle().fill(NOXV2Theme.blue.opacity(0.16)).frame(width: 46, height: 46)
-                Circle().stroke(NOXV2Theme.cyan.opacity(0.55), lineWidth: 1).frame(width: 46, height: 46)
-                Image(systemName: "bolt.fill").font(.system(size: 19, weight: .black)).foregroundStyle(NOXV2Theme.cyan)
-            }
+        HStack(spacing: 12) {
+            Image("NOXAvatar")
+                .resizable().scaledToFill()
+                .frame(width: 46, height: 46)
+                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 15, style: .continuous).stroke(NOXShellStyle.cyan.opacity(0.75), lineWidth: 1))
+                .shadow(color: NOXShellStyle.cyan.opacity(0.24), radius: 12)
             VStack(alignment: .leading, spacing: 3) {
-                Text("NOX V2").font(.system(size: 19, weight: .black, design: .rounded)).tracking(2)
-                Text("PATCH CONTROL • PREMIUM UI").font(.system(size: 9, weight: .bold)).tracking(1.3).foregroundStyle(NOXV2Theme.muted)
+                Text("NOX V2")
+                    .font(.system(size: 18, weight: .black, design: .rounded)).tracking(1.6)
+                    .foregroundStyle(LinearGradient(colors: [.white, NOXShellStyle.cyan], startPoint: .leading, endPoint: .trailing))
+                Text(selectedTab.subtitle)
+                    .font(.system(size: 9, weight: .black, design: .rounded)).tracking(1.35)
+                    .foregroundStyle(.white.opacity(0.55))
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: 4) {
-                HStack(spacing: 5) { Circle().fill(NOXV2Theme.cyan).frame(width: 6, height: 6); Text(language.text("noxv2.header.local")) }
-                    .font(.system(size: 9, weight: .bold)).foregroundStyle(NOXV2Theme.muted)
-                Text("V2 CONTROL CENTER").font(.system(size: 8, weight: .heavy)).tracking(0.7).foregroundStyle(NOXV2Theme.cyan)
+            HStack(spacing: 6) {
+                Circle().fill(.green).frame(width: 7, height: 7)
+                Text("LOCAL UI")
+                    .font(.system(size: 9, weight: .black, design: .rounded)).tracking(1)
+                    .foregroundStyle(.white.opacity(0.62))
             }
         }
-        .padding(.horizontal, 18).padding(.vertical, 14)
-        .background(NOXV2Theme.background.opacity(0.96))
-        .overlay(alignment: .bottom) { Rectangle().fill(LinearGradient(colors: [NOXV2Theme.blue.opacity(0.05), NOXV2Theme.cyan.opacity(0.55), NOXV2Theme.blue.opacity(0.05)], startPoint: .leading, endPoint: .trailing)).frame(height: 1) }
+        .padding(.horizontal, 18).padding(.top, 8).padding(.bottom, 13)
+        .background(Color.black.opacity(0.22))
+        .overlay(alignment: .bottom) { Rectangle().fill(NOXShellStyle.cyan.opacity(0.22)).frame(height: 1) }
     }
 
-    private var home: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
-                // New visual hierarchy: brand hero, status strip, compact dashboard and action tiles.
-                VStack(spacing: 10) {
-                    ZStack {
-                        Circle().fill(NOXV2Theme.blue.opacity(0.13)).frame(width: 88, height: 88)
-                        Circle().stroke(NOXV2Theme.cyan.opacity(0.55), lineWidth: 1.5).frame(width: 82, height: 82)
-                        Image(systemName: "bolt.fill").font(.system(size: 31, weight: .black)).foregroundStyle(NOXV2Theme.cyan)
-                    }
-                    Text("NOX V2").font(.system(size: 28, weight: .black, design: .rounded)).tracking(3)
-                    Text("CONTROL CENTER").font(.system(size: 11, weight: .heavy)).tracking(2).foregroundStyle(NOXV2Theme.cyan)
-                    Text(language.text("noxv2.home.subtitle")).font(.system(size: 12, weight: .medium)).foregroundStyle(NOXV2Theme.muted).multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity).padding(.vertical, 18)
-                .background(RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [NOXV2Theme.panel2.opacity(0.85), NOXV2Theme.panel.opacity(0.7)], startPoint: .top, endPoint: .bottom)))
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(NOXV2Theme.cyan.opacity(0.24), lineWidth: 1))
-
-                HStack(spacing: 9) {
-                    statusPill(language.text("noxv2.status.local"), color: NOXV2Theme.cyan)
-                    statusPill(language.text("noxv2.status.backend.unconfigured"), color: NOXV2Theme.gold)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-
-                HStack(spacing: 10) {
-                    statCard(title: language.text("noxv2.stat.version"), value: appVersion, icon: "square.grid.2x2.fill", accent: NOXV2Theme.cyan)
-                    statCard(title: language.text("noxv2.stat.ios"), value: UIDevice.current.systemVersion, icon: "iphone", accent: NOXV2Theme.blue)
-                }
-
-                VStack(alignment: .leading, spacing: 11) {
-                    HStack { Text(language.text("noxv2.home.quick")).font(.system(size: 16, weight: .black)); Spacer(); Text("QUICK ACCESS").font(.system(size: 8, weight: .heavy)).tracking(1).foregroundStyle(NOXV2Theme.cyan) }
-                    quickCard(tab: .patch, title: language.text("noxv2.quick.patch"), subtitle: language.text("noxv2.quick.patch.detail"), icon: "square.stack.3d.up.fill")
-                    quickCard(tab: .admin, title: language.text("noxv2.quick.admin"), subtitle: language.text("noxv2.quick.admin.detail"), icon: "slider.horizontal.3")
-                    quickCard(tab: .info, title: language.text("noxv2.quick.info"), subtitle: language.text("noxv2.quick.info.detail"), icon: "info.circle.fill")
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 7) { Image(systemName: "waveform.path.ecg").foregroundStyle(NOXV2Theme.gold); Text(language.text("noxv2.notice.title")).font(.system(size: 12, weight: .black)).foregroundStyle(NOXV2Theme.gold) }
-                    Text(language.text("noxv2.notice.body")).font(.system(size: 12, weight: .medium)).foregroundStyle(NOXV2Theme.muted).fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(15).frame(maxWidth: .infinity, alignment: .leading)
-                .background(NOXV2Theme.panel.opacity(0.9)).overlay(RoundedRectangle(cornerRadius: 16).stroke(NOXV2Theme.gold.opacity(0.18), lineWidth: 1)).clipShape(RoundedRectangle(cornerRadius: 16))
-            }.padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 20)
-        }
-    }
-
-    private var patchInventory: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                pageTitle(language.text("noxv2.patch.title"), subtitle: language.text("noxv2.patch.subtitle"))
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(language.text("noxv2.patch.safety.title"), systemImage: "shield.lefthalf.filled")
-                        .font(.system(size: 13, weight: .bold)).foregroundStyle(NOXV2Theme.gold)
-                    Text(language.text("noxv2.patch.safety.body"))
-                        .font(.system(size: 12)).foregroundStyle(NOXV2Theme.muted)
-                }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
-                PatchInventoryList()
-            }.padding(16)
-        }
-    }
-
-    private var admin: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                pageTitle(language.text("noxv2.admin.title"), subtitle: language.text("noxv2.admin.subtitle"))
-                adminButton(icon: "gearshape.fill", title: language.text("noxv2.admin.settings"), detail: language.text("noxv2.admin.settings.detail")) { showSettings = true }
-                adminButton(icon: "doc.text.magnifyingglass", title: language.text("noxv2.admin.logs"), detail: language.text("noxv2.admin.logs.detail")) { showLogs = true }
-                adminButton(icon: "checkmark.shield.fill", title: language.text("noxv2.admin.license"), detail: language.text("noxv2.admin.license.detail")) { showLicenseStatus = true }
-                adminButton(icon: "questionmark.circle.fill", title: language.text("noxv2.admin.support"), detail: language.text("noxv2.admin.support.detail")) { showSupport = true }
-                Text(language.text("noxv2.admin.backend.notice"))
-                    .font(.system(size: 12)).foregroundStyle(NOXV2Theme.muted)
-                    .padding(14).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
-            }.padding(16)
-        }
-    }
-
-    private var info: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                pageTitle(language.text("noxv2.info.title"), subtitle: language.text("noxv2.info.subtitle"))
-                VStack(spacing: 12) {
-                    Image(systemName: "hexagon.fill").font(.system(size: 52)).foregroundStyle(NOXV2Theme.cyan)
-                    Text("NOX V2").font(.system(size: 23, weight: .black, design: .rounded)).tracking(2)
-                    Text(language.text("noxv2.info.description")).font(.system(size: 13)).foregroundStyle(NOXV2Theme.muted).multilineTextAlignment(.center)
-                    Text("Base: 3106").font(.system(size: 11, weight: .semibold)).foregroundStyle(NOXV2Theme.gold)
-                }.padding(22).frame(maxWidth: .infinity).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 20))
-                adminButton(icon: "doc.text", title: language.text("noxv2.info.licenses"), detail: language.text("noxv2.info.licenses.detail")) { showAbout = true }
-            }.padding(16)
-        }
-    }
-
-    private var tabBar: some View {
-        HStack(spacing: 4) {
-            ForEach(NOXV2Tab.allCases, id: \.self) { tab in
-                Button { withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) { selected = tab } } label: {
+    private var shellTabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(NOXShellTab.allCases) { tab in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) { selectedTab = tab }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
                     VStack(spacing: 5) {
-                        Image(systemName: tab.icon).font(.system(size: 18, weight: .bold))
-                        Text(language.text(tab.key)).font(.system(size: 9, weight: .heavy)).tracking(0.8)
+                        Image(systemName: selectedTab == tab ? tab.selectedIcon : tab.icon)
+                            .font(.system(size: 18, weight: .semibold))
+                        Text(tab.title)
+                            .font(.system(size: 9, weight: .black, design: .rounded)).tracking(1)
                     }
-                    .foregroundStyle(selected == tab ? NOXV2Theme.cyan : NOXV2Theme.muted)
-                    .frame(maxWidth: .infinity).padding(.vertical, 11)
-                    .background(selected == tab ? NOXV2Theme.cyan.opacity(0.10) : Color.clear, in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(alignment: .top) { if selected == tab { Capsule().fill(NOXV2Theme.cyan).frame(width: 24, height: 2).padding(.top, 1) } }
-                }.buttonStyle(.plain)
+                    .foregroundStyle(selectedTab == tab ? NOXShellStyle.cyan : .white.opacity(0.46))
+                    .frame(maxWidth: .infinity).frame(height: 62)
+                    .background(selectedTab == tab ? NOXShellStyle.cyan.opacity(0.09) : Color.clear)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 8).padding(.vertical, 7)
-        .background(NOXV2Theme.panel.opacity(0.98), in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(NOXV2Theme.cyan.opacity(0.2), lineWidth: 1))
-        .padding(.horizontal, 12).padding(.bottom, 7)
+        .padding(.horizontal, 10).padding(.bottom, 3)
+        .background(Color.black.opacity(0.76))
+        .overlay(alignment: .top) { Rectangle().fill(NOXShellStyle.cyan.opacity(0.25)).frame(height: 1) }
     }
 
-    private func pageTitle(_ title: String, subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title).font(.system(size: 23, weight: .black, design: .rounded))
-            Text(subtitle).font(.system(size: 12)).foregroundStyle(NOXV2Theme.muted)
+    private var adminPage: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 13) {
+                adminIdentityCard
+                adminActionRow(icon: "gearshape.fill", title: language.text("settings.title"), subtitle: "App preferences and configuration", color: NOXShellStyle.cyan) { openSettings() }
+                adminActionRow(icon: "doc.text.magnifyingglass", title: language.text("logs.title"), subtitle: "Application diagnostics and logs", color: .blue) { openLogs() }
+                adminActionRow(icon: "checkmark.shield.fill", title: "System status", subtitle: appState.isSupported ? "Support status available" : "Support status unavailable", color: appState.isSupported ? .green : .orange) { openLogs() }
+            }
+            .padding(.horizontal, 18).padding(.top, 12).padding(.bottom, 24)
         }
     }
-    private func statusPill(_ text: String, color: Color) -> some View {
-        Text(text).font(.system(size: 10, weight: .bold)).padding(.horizontal, 10).padding(.vertical, 5)
-            .background(color.opacity(0.12), in: Capsule()).overlay(Capsule().stroke(color.opacity(0.35), lineWidth: 0.7)).foregroundStyle(color)
-    }
-    private func statCard(title: String, value: String, icon: String, accent: Color = NOXV2Theme.cyan) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Image(systemName: icon).font(.system(size: 16, weight: .bold)).foregroundStyle(accent)
-                .frame(width: 34, height: 34).background(accent.opacity(0.11), in: RoundedRectangle(cornerRadius: 10))
-            Text(title.uppercased()).font(.system(size: 9, weight: .heavy)).tracking(0.7).foregroundStyle(NOXV2Theme.muted)
-            Text(value).font(.system(size: 18, weight: .black, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(14)
-            .background(NOXV2Theme.panel, in: RoundedRectangle(cornerRadius: 17))
-            .overlay(RoundedRectangle(cornerRadius: 17).stroke(accent.opacity(0.19), lineWidth: 1))
+
+    private var adminIdentityCard: some View {
+        VStack(spacing: 9) {
+            Image("NOXAvatar").resizable().scaledToFill().frame(width: 70, height: 70)
+                .clipShape(Circle()).overlay(Circle().stroke(NOXShellStyle.cyan.opacity(0.8), lineWidth: 1.5))
+                .shadow(color: NOXShellStyle.cyan.opacity(0.28), radius: 14)
+            Text("NOX V2 CONTROL CENTER").font(.system(size: 15, weight: .black, design: .rounded)).foregroundStyle(.white)
+            Text("Settings • Logs • App status").font(.system(size: 10, weight: .semibold, design: .rounded)).foregroundStyle(.white.opacity(0.55))
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, 20)
+        .background(NOXShellStyle.card)
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(NOXShellStyle.cyan.opacity(0.3), lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
-    private func quickCard(tab: NOXV2Tab, title: String, subtitle: String, icon: String) -> some View {
-        Button { selected = tab } label: {
-            HStack(spacing: 13) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 13).fill(NOXV2Theme.cyan.opacity(0.10)).frame(width: 46, height: 46)
-                    Image(systemName: icon).font(.system(size: 19, weight: .bold)).foregroundStyle(NOXV2Theme.cyan)
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.system(size: 14, weight: .black))
-                    Text(subtitle).font(.system(size: 11, weight: .medium)).foregroundStyle(NOXV2Theme.muted).lineLimit(2)
-                }
-                Spacer(minLength: 3)
-                Image(systemName: "arrow.up.right").font(.system(size: 12, weight: .heavy)).foregroundStyle(NOXV2Theme.cyan)
-            }.padding(14).background(NOXV2Theme.panel, in: RoundedRectangle(cornerRadius: 17))
-                .overlay(RoundedRectangle(cornerRadius: 17).stroke(NOXV2Theme.blue.opacity(0.17), lineWidth: 1))
-        }.buttonStyle(.plain)
-    }
-
-    private func adminButton(icon: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
+    private func adminActionRow(icon: String, title: String, subtitle: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Image(systemName: icon).foregroundStyle(NOXV2Theme.cyan).frame(width: 36, height: 36).background(NOXV2Theme.cyan.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+                Image(systemName: icon).font(.system(size: 16, weight: .bold)).foregroundStyle(color)
+                    .frame(width: 42, height: 42).background(color.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 13))
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(title).font(.system(size: 13, weight: .bold))
-                    Text(detail).font(.system(size: 11)).foregroundStyle(NOXV2Theme.muted)
+                    Text(title).font(.system(size: 13, weight: .bold, design: .rounded)).foregroundStyle(.white)
+                    Text(subtitle).font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(.white.opacity(0.55))
                 }
                 Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 11)).foregroundStyle(NOXV2Theme.muted)
-            }.padding(12).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
-        }.buttonStyle(.plain)
-    }
-    private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
-    }
-}
-
-private struct NOXV2LicenseStatusView: View {
-    @Environment(\.appLanguage) private var language
-    @Environment(\.dismiss) private var dismiss
-    private var endpoint: String {
-        (Bundle.main.object(forInfoDictionaryKey: "NOX_LICENSE_SERVER_URL") as? String) ?? ""
-    }
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 14) {
-                Label(language.text("noxv2.license.unconfigured"), systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange).font(.headline)
-                Text(language.text("noxv2.license.description"))
-                    .font(.subheadline).foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(language.text("noxv2.license.endpoint"))
-                        .font(.caption.weight(.semibold))
-                    Text(endpoint.isEmpty ? language.text("noxv2.license.endpoint.empty") : endpoint)
-                        .font(.footnote.monospaced()).textSelection(.enabled)
-                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                Spacer()
-            }.padding()
-                .navigationTitle(language.text("noxv2.admin.license"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(language.text("common.done")) { dismiss() } } }
-        }
-    }
-}
-
-private struct NOXV2SupportView: View {
-    @Environment(\.appLanguage) private var language
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                Image(systemName: "message.fill").font(.system(size: 36)).foregroundStyle(NOXV2Theme.cyan)
-                Text(language.text("noxv2.support.title")).font(.headline)
-                Text("0964943392").font(.title3.monospaced()).textSelection(.enabled)
-                Button {
-                    if let url = URL(string: "https://zalo.me/0964943392") {
-                        UIApplication.shared.open(url)
-                    }
-                } label: {
-                    Label(language.text("noxv2.support.openzalo"), systemImage: "arrow.up.right.square")
-                        .frame(maxWidth: .infinity).padding()
-                }.buttonStyle(.borderedProminent)
-                Button(language.text("noxv2.support.credits")) { dismiss(); }
-                    .buttonStyle(.bordered)
-                Spacer()
-            }.padding()
-                .navigationTitle(language.text("noxv2.admin.support"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(language.text("common.done")) { dismiss() } } }
-        }
-    }
-}
-
-private struct PatchInventoryList: View {
-    @State private var entries: [String] = []
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if entries.isEmpty {
-                Label("Patch package inventory unavailable", systemImage: "folder.badge.questionmark")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(NOXV2Theme.muted)
-                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 14))
-            } else {
-                ForEach(entries, id: \.self) { name in
-                    HStack {
-                        Image(systemName: "doc.zipper").foregroundStyle(NOXV2Theme.cyan)
-                        Text(name).font(.system(size: 12, weight: .medium))
-                        Spacer()
-                        Text(languageNeutralStatus).font(.system(size: 9, weight: .bold)).foregroundStyle(NOXV2Theme.gold)
-                    }.padding(12).background(NOXV2Theme.panel).clipShape(RoundedRectangle(cornerRadius: 12))
-                }
+                Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(.white.opacity(0.35))
             }
+            .padding(13).background(NOXShellStyle.card)
+            .overlay(RoundedRectangle(cornerRadius: 17).stroke(color.opacity(0.22), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 17, style: .continuous))
         }
-        .task { load() }
+        .buttonStyle(.plain)
     }
-    private var languageNeutralStatus: String { "READ-ONLY" }
-    private func load() {
-        guard let resourceURL = Bundle.main.resourceURL else { return }
-        let urls = (try? FileManager.default.contentsOfDirectory(at: resourceURL, includingPropertiesForKeys: nil)) ?? []
-        entries = urls.filter { $0.pathExtension == "3105" || $0.pathExtension == "3106" }.map(\.lastPathComponent).sorted()
-    }
+
+    private func openSettings() { showSettings = true }
+    private func openLogs() { showLogs = true }
 }
 
-private enum NOXV2Theme {
-    static let background = Color(hex: 0x030712)
-    static let panel = Color(hex: 0x0B1220)
-    static let panel2 = Color(hex: 0x101B2C)
-    static let cyan = Color(hex: 0x00D9FF)
-    static let blue = Color(hex: 0x1677FF)
-    static let gold = Color(hex: 0xD8B45A)
-    static let muted = Color(hex: 0x91A2B8)
+private enum NOXShellTab: String, CaseIterable, Identifiable {
+    case home, patch, admin, info
+    var id: String { rawValue }
+    var title: String { rawValue.uppercased() }
+    var subtitle: String {
+        switch self { case .home: return "DASHBOARD"; case .patch: return "PATCH CENTER"; case .admin: return "ADMIN PANEL"; case .info: return "INFORMATION" }
+    }
+    var icon: String { switch self { case .home: return "house"; case .patch: return "square.stack.3d.up"; case .admin: return "slider.horizontal.3"; case .info: return "info.circle" } }
+    var selectedIcon: String { switch self { case .home: return "house.fill"; case .patch: return "square.stack.3d.up.fill"; case .admin: return "slider.horizontal.3"; case .info: return "info.circle.fill" } }
 }
 
-private extension Color {
-    init(hex: UInt32) {
-        self.init(red: Double((hex >> 16) & 0xFF) / 255, green: Double((hex >> 8) & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
+private enum NOXShellStyle {
+    static let cyan = Color(red: 0.04, green: 0.78, blue: 0.94)
+    static let card = Color(red: 0.035, green: 0.065, blue: 0.12).opacity(0.88)
+}
+
+private struct NOXShellBackground: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: [Color(red: 0.015, green: 0.025, blue: 0.055), .black, Color(red: 0.015, green: 0.04, blue: 0.075)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            Circle().fill(NOXShellStyle.cyan.opacity(0.06)).frame(width: 290, height: 290).blur(radius: 80).offset(x: 140, y: -270)
+            Circle().fill(Color.blue.opacity(0.05)).frame(width: 260, height: 260).blur(radius: 75).offset(x: -150, y: 320)
+        }.ignoresSafeArea()
     }
 }

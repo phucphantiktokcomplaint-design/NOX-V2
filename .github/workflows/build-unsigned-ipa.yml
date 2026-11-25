@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -39,9 +39,9 @@ jobs:
           BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")
           mkdir Payload
           cp -R "$APP" Payload/
-          zip -qry "NOX-V2-${VERSION}-unsigned.ipa" Payload
-          shasum -a 256 "NOX-V2-${VERSION}-unsigned.ipa"
-          echo "IPA=NOX-V2-${VERSION}-unsigned.ipa" >> "$GITHUB_ENV"
+          zip -qry "3106-${VERSION}-unsigned.ipa" Payload
+          shasum -a 256 "3106-${VERSION}-unsigned.ipa"
+          echo "IPA=3106-${VERSION}-unsigned.ipa" >> "$GITHUB_ENV"
           echo "IPA_VERSION=${VERSION}" >> "$GITHUB_ENV"
           echo "IPA_BUILD=${BUILD}" >> "$GITHUB_ENV"
 
@@ -69,5 +69,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NOX-V2-unsigned-IPA
-          path: "NOX-V2-*-unsigned.ipa"
+          name: 3106-unsigned-ipa
+          path: "3106-*-unsigned.ipa"
