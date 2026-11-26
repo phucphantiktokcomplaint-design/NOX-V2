@@ -548,8 +548,12 @@ struct PatchTabView: View {
         let color = getColorForPatch(filename)
 
         return Button {
-            setStatus("PATCH ACTION IS NOT AVAILABLE IN THIS UI UPDATE", .warning)
-            haptic(.warning)
+            // UI-only preview toggle: confirms the card tap is received.
+            // This does not apply or execute patch payloads.
+            let nextState = !enabled
+            patchStates[filename] = nextState
+            setStatus(nextState ? "PREVIEW ENABLED: \(displayName)" : "PREVIEW DISABLED: \(displayName)", nextState ? .success : .info)
+            haptic(nextState ? .success : .light)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -582,7 +586,7 @@ struct PatchTabView: View {
                 }
 
                 HStack {
-                    Text(enabled ? "ACTIVE" : "DISABLED")
+                    Text(enabled ? "PREVIEW ON" : "PREVIEW OFF")
                         .font(.system(size: 9, weight: .black))
                         .foregroundStyle(
                             enabled ? Premium.green : Premium.secondary
