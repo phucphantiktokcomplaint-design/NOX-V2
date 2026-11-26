@@ -553,7 +553,7 @@ struct PatchTabView: View {
             let nextState = !enabled
             patchStates[filename] = nextState
             setStatus(nextState ? "PREVIEW ENABLED: \(displayName)" : "PREVIEW DISABLED: \(displayName)", nextState ? .success : .info)
-            haptic(nextState ? .success : .light)
+            haptic(nextState ? .success : .warning)
         } label: {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
